@@ -14,17 +14,20 @@
             background: linear-gradient(135deg, #667eea, #764ba2);
             color: #fff;
         }
+
         .container {
             display: flex;
             flex-direction: column;
             align-items: center;
         }
+
         .input-container {
             display: flex;
             justify-content: center;
             align-items: center;
             margin-bottom: 20px;
         }
+
         input {
             padding: 10px 20px;
             font-size: 18px;
@@ -34,9 +37,11 @@
             transition: box-shadow 0.3s ease-in-out;
             outline: none;
         }
+
         input:focus {
             box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
         }
+
         h3 {
             background: rgba(0, 0, 0, 0.2);
             padding: 15px;
@@ -45,9 +50,11 @@
             transition: background 0.3s ease;
             margin-top: 20px;
         }
+
         h3:hover {
             background: rgba(0, 0, 0, 0.5);
         }
+
         .toast {
             visibility: hidden;
             min-width: 250px;
@@ -63,26 +70,55 @@
             font-size: 17px;
             transform: translateX(-50%);
         }
+
         .toast.show {
             visibility: visible;
             -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
             animation: fadein 0.5s, fadeout 0.5s 2.5s;
         }
+
         @-webkit-keyframes fadein {
-            from {bottom: 0; opacity: 0;}
-            to {bottom: 30px; opacity: 1;}
+            from {
+                bottom: 0;
+                opacity: 0;
+            }
+            to {
+                bottom: 30px;
+                opacity: 1;
+            }
         }
+
         @keyframes fadein {
-            from {bottom: 0; opacity: 0;}
-            to {bottom: 30px; opacity: 1;}
+            from {
+                bottom: 0;
+                opacity: 0;
+            }
+            to {
+                bottom: 30px;
+                opacity: 1;
+            }
         }
+
         @-webkit-keyframes fadeout {
-            from {bottom: 30px; opacity: 1;}
-            to {bottom: 0; opacity: 0;}
+            from {
+                bottom: 30px;
+                opacity: 1;
+            }
+            to {
+                bottom: 0;
+                opacity: 0;
+            }
         }
+
         @keyframes fadeout {
-            from {bottom: 30px; opacity: 1;}
-            to {bottom: 0; opacity: 0;}
+            from {
+                bottom: 30px;
+                opacity: 1;
+            }
+            to {
+                bottom: 0;
+                opacity: 0;
+            }
         }
     </style>
 </head>
@@ -95,6 +131,24 @@
 </div>
 <div id="toast" class="toast">Copied to clipboard!</div>
 <script>
+  const decode = function (input) {
+    // Replace non-url compatible chars with base64 standard chars
+    input = input
+      .replace(/-/g, '+')
+      .replace(/_/g, '/');
+
+    // Pad out with standard base64 required padding characters
+    const pad = input.length % 4;
+    if (pad) {
+      if (pad === 1) {
+        throw new Error('InvalidLengthError: Input base64url string is the wrong length to determine padding');
+      }
+      input += new Array(5 - pad).join('=');
+    }
+
+    return input;
+  };
+
   const response = document.getElementById('response');
   const result = document.getElementById('result');
   const toast = document.getElementById('toast');
@@ -124,11 +178,14 @@
     }
     const k = parsed.keys[0].k;
     const kid = parsed.keys[0].kid;
+
+    console.log(`k: ${k}\nkid: ${kid}`);
+
     // base64 decode to hex
-    const kHex = Array.from(atob(k), (c) => {
+    const kHex = Array.from(atob(decode(k)), (c) => {
       return ('0' + c.charCodeAt(0).toString(16)).slice(-2);
     }).join('');
-    const kidHex = Array.from(atob(kid), (c) => {
+    const kidHex = Array.from(atob(decode(kid)), (c) => {
       return ('0' + c.charCodeAt(0).toString(16)).slice(-2);
     }).join('');
     result.innerText = `${kidHex}:${kHex}`;
@@ -136,7 +193,9 @@
 
   function showToast() {
     toast.className = "toast show";
-    setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
+    setTimeout(() => {
+      toast.className = toast.className.replace("show", "");
+    }, 3000);
   }
 </script>
 </body>
