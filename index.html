@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>EME Helper</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .input-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        input {
+            padding: 10px 20px;
+            font-size: 18px;
+            border: none;
+            border-radius: 30px;
+            width: 400px;
+            transition: box-shadow 0.3s ease-in-out;
+            outline: none;
+        }
+        input:focus {
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+        }
+        h3 {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            margin-top: 20px;
+        }
+        h3:hover {
+            background: rgba(0, 0, 0, 0.5);
+        }
+        .toast {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 2px;
+            padding: 16px;
+            position: fixed;
+            z-index: 1;
+            left: 50%;
+            bottom: 30px;
+            font-size: 17px;
+            transform: translateX(-50%);
+        }
+        .toast.show {
+            visibility: visible;
+            -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
+            animation: fadein 0.5s, fadeout 0.5s 2.5s;
+        }
+        @-webkit-keyframes fadein {
+            from {bottom: 0; opacity: 0;}
+            to {bottom: 30px; opacity: 1;}
+        }
+        @keyframes fadein {
+            from {bottom: 0; opacity: 0;}
+            to {bottom: 30px; opacity: 1;}
+        }
+        @-webkit-keyframes fadeout {
+            from {bottom: 30px; opacity: 1;}
+            to {bottom: 0; opacity: 0;}
+        }
+        @keyframes fadeout {
+            from {bottom: 30px; opacity: 1;}
+            to {bottom: 0; opacity: 0;}
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="input-container">
+        <input type="text" placeholder="MediaKeySession response" id="response">
+    </div>
+    <h3 id="result">Please enter content in the input box above...</h3>
+</div>
+<div id="toast" class="toast">Copied to clipboard!</div>
+<script>
+  const response = document.getElementById('response');
+  const result = document.getElementById('result');
+  const toast = document.getElementById('toast');
+
+  result.onclick = () => {
+    navigator.clipboard.writeText(result.innerText);
+    showToast();
+  };
+
+  response.addEventListener('input', () => {
+    const responseValue = response.value;
+    // base64 decode
+    let decoded;
+    try {
+      decoded = atob(responseValue);
+    } catch (e) {
+      result.innerText = 'Invalid base64 string';
+      return;
+    }
+    // try to parse as JSON
+    let parsed;
+    try {
+      parsed = JSON.parse(decoded);
+    } catch (e) {
+      result.innerText = 'Invalid JSON';
+      return;
+    }
+    const k = parsed.keys[0].k;
+    const kid = parsed.keys[0].kid;
+    // base64 decode to hex
+    const kHex = Array.from(atob(k), (c) => {
+      return ('0' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join('');
+    const kidHex = Array.from(atob(kid), (c) => {
+      return ('0' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join('');
+    result.innerText = `${kidHex}:${kHex}`;
+  });
+
+  function showToast() {
+    toast.className = "toast show";
+    setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
+  }
+</script>
+</body>
+</html>
